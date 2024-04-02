@@ -10,7 +10,12 @@ const App = observer(() => {
         loadingStore.setIsLoading(true)
         fetch("https://jsonplaceholder.typicode.com/todos")
             .then(response => response.json())
-            .then(json => loadingStore.setData(json))
+            .then(json => {
+                if (Math.random() < 0.3)
+                    loadingStore.setData(null)
+                else
+                    loadingStore.setData(json)
+            })
             .catch(_ => loadingStore.setIsLoading(false))
     }
 
