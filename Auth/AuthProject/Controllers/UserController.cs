@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using AuthProject.Dto;
 using AuthProject.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -26,16 +27,15 @@ public class UserController : ControllerBase
         if (!_users.TryGetValue(userLoginDto.Email, out var user))
             return BadRequest("User not found");
 
-        if (!user.Password.Equals(userLoginDto.Password)) 
+        if (!user.Password.Equals(userLoginDto.Password))
             return Forbid("Wrong password");
-        
+
         var jwtToken = GenerateToken(user);
         Response.Cookies.Append("Token", jwtToken, new CookieOptions
         {
             Expires = DateTimeOffset.UtcNow.AddDays(1)
         });
         return Ok();
-
     }
 
     [HttpPost]
@@ -50,7 +50,7 @@ public class UserController : ControllerBase
             Password = userRegisterDto.Password,
             Role = userRegisterDto.Role
         };
-        
+
         _users.Add(newUser.Email, newUser);
         var jwtToken = GenerateToken(newUser);
         Response.Cookies.Append("Token", jwtToken, new CookieOptions
@@ -64,12 +64,14 @@ public class UserController : ControllerBase
     public IActionResult GetInfo()
     {
         var tokenCookie = HttpContext.Request.Cookies["Token"];
-
         Console.WriteLine(tokenCookie);
         var claims = HttpContext.User.Claims.ToList();
-
-        Console.WriteLine(claims.Count);
-        return Ok();
+        var getUserInfoDto = new GetUserInfoDto
+        {
+            Email = claims.FirstOrDefault(i => i.Type.Equals(ClaimTypes.Email))!.Value,
+            Role = claims.FirstOrDefault(i => i.Type.Equals(ClaimTypes.Role))!.Value
+        };
+        return Ok(getUserInfoDto);
     }
 
     [NonAction]
@@ -77,15 +79,15 @@ public class UserController : ControllerBase
     {
         var claims = new List<Claim>
         {
-            new("email", user.Email),
-            new("role", user.Role)
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Role, user.Role)
         };
-        
+
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value!));
-       
+
         var creds = new SigningCredentials(key, SecurityAlgorithms.Aes128CbcHmacSha256);
-       
+
         var token = new JwtSecurityToken(
             claims: claims,
             expires: DateTime.Now.AddDays(1),
