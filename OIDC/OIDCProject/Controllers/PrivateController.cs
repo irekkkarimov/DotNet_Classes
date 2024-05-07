@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace OIDCProject.Controllers;
 
 [Authorize]
-[Route("[controller]/[action]cd")]
+[Route("[controller]/[action]")]
 public class PrivateController : ControllerBase
 {
     [HttpGet]
