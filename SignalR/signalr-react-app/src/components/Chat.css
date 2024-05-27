@@ -1,0 +1,23 @@
+.App {
+    display: flex;
+    justify-content: center;
+    margin-top: 50px;
+}
+
+.chat {
+    width: 500px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid grey;
+}
+
+.other-message {
+    display: flex;
+    border: 1px solid red;
+}
+
+.user-message {
+    display: flex;
+    border: 1px solid blue;
+    justify-content: end;
+}
